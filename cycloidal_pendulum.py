@@ -3,8 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.integrate as integrate
 import matplotlib.animation as animation
-from collections import deque
-
 
 R = 1.0
 g = 9.81  # acceleration due to gravity, in m/s^2
@@ -45,10 +43,14 @@ y = integrate.odeint(derivs, state, t)
 x1 = R * (2 * y[:, 0] + sin(2 * y[:, 0])) - (2 * np.pi)
 y1 = R * (-3 - cos(2 * y[:, 0]))
 
+# coordinate of contact point
+x2 = R * (2 * y[:, 0] - sin(2 * y[:, 0])) - (2 * np.pi)
+y2 = R * (-1 + cos(2 * y[:, 0]))
+
 # cycloid parametric equations
 n = np.linspace(-np.pi, np.pi, 1000)
-x2 = R * (n - sin(n))
-y2 = R * (-1 + cos(n))
+x3 = R * (n - sin(n))
+y3 = R * (-1 + cos(n))
 
 
 # Define the meta data for the movie
@@ -61,15 +63,24 @@ writer = FFMpegWriter(fps=15, metadata=metadata)
 fig = plt.figure()
 
 # plot the cycloidal curve
-plt.plot(x2, y2, 'b')
-red_circle, = plt.plot([], [], 'ro', markersize = 8)
+plt.plot(x3, y3, 'b')
+
+# plot the mass, contact points and line
+mass, = plt.plot([], [], 'ro', markersize = 8)
+contact_point, = plt.plot([], [], 'b', markersize = 0.1)
+line, = plt.plot([], [], 'b', animated=True)
+
 plt.xlim([-3.5, 3.5])
 plt.ylim([-5, 0])
 
 # Update the frames for the movie
-with writer.saving(fig, "cyc_pendulum.mp4", 100):
+with writer.saving(fig, "cycloidal_pendulum.mp4", 100):
     for i in range(300):
         x0 = x1[i]
         y0 = y1[i]
-        red_circle.set_data(x0, y0)
+        x_c = x2[i]
+        y_c = y2[i]
+        mass.set_data(x0, y0)
+        contact_point.set_data(x_c, y_c)
+        line.set_data([x1[i], x2[i]], [y1[i], y2[i]])
         writer.grab_frame()
